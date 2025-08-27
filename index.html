@@ -287,18 +287,18 @@
         
         <div class="input-group">
             <label for="hashInput">Enter a hexadecimal hash:</label>
-            <input type="text" 
-                   id="hashInput" 
-                   placeholder="Enter a hash that begins with 0x...">
+            <form autocomplete="off">
+                <input type="text" 
+                    id="hashInput" 
+                    placeholder="Enter a hash above and click 'Play Melody' to hear its unique sound!"
+                    value=""
+                    autocomplete="off">
+            </form>
         </div>
         
         <div class="controls">
-            <button class="play-btn" onclick="playHashMelody()">
-                Play Melody
-            </button>
-            <button class="stop-btn" onclick="stopMelody()">
-                Stop
-            </button>
+            <button class="play-btn">Play Melody</button>
+            <button class="stop-btn">Stop</button>
         </div>
 
         <div class="sliders">
@@ -344,40 +344,42 @@
         let isPlaying = false;
         
         async function playHashMelody() {
+            // 1️⃣ Unlock audio context on iOS / Safari
+            await Tone.start();
+
             const hashInput = document.getElementById('hashInput').value.trim();
             const output = document.getElementById('output');
             const loading = document.getElementById('loading');
-            
+
             if (!hashInput) {
                 output.textContent = 'Please enter a hash string.';
                 return;
             }
-            
+
             try {
-                // Show loading
                 loading.style.display = 'block';
                 output.textContent = 'Processing hash...';
                 isPlaying = true;
-                
-                // Play the melody (0.25 = faster than original 0.5)
+
                 const speed = parseFloat(document.getElementById('speedSlider').value);
                 const volume = parseFloat(document.getElementById('volumeSlider').value);
+
                 const result = await hashWavePlayer.playHashMelody(hashInput, speed, volume);
-                
-                // Display results
+
                 output.innerHTML = 
+                    `<strong>Hash:</strong> ${hashInput}<br>` +
                     `<strong>Generated ${result.pitches.length} notes:</strong><br>` +
                     `${result.pitches.join(', ')}<br><br>` +
-                    `<strong>Playing melody...</strong><br>`
+                    `<strong>Playing melody...</strong><br>` +
+                    `Duration: ${result.duration.toFixed(1)} seconds`;
 
-                // Auto-stop after melody finishes
                 setTimeout(() => {
                     if (isPlaying) {
-                        output.innerHTML += 'Melody finished!';
+                        output.innerHTML += '<br><br>Melody finished!';
                         isPlaying = false;
                     }
                 }, result.duration * 1000);
-                
+
             } catch (error) {
                 output.textContent = `Error: ${error.message}`;
                 console.error('Melody generation error:', error);
@@ -435,6 +437,20 @@
         document.getElementById('volumeSlider').addEventListener('input', function() {
             document.getElementById('volumeValue').textContent = Math.round(this.value * 100) + '%';
         });
+
+        window.addEventListener('load', () => {
+            const hashInput = document.getElementById('hashInput');
+            hashInput.value = '';
+        });
+
+        const playBtn = document.querySelector('.play-btn');
+        const stopBtn = document.querySelector('.stop-btn');
+
+        playBtn.addEventListener('click', playHashMelody);
+        playBtn.addEventListener('touchstart', playHashMelody);
+
+        stopBtn.addEventListener('click', stopMelody);
+        stopBtn.addEventListener('touchstart', stopMelody);
     </script>
 </body>
 </html>
