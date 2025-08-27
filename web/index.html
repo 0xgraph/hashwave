@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hash Wave - Convert Hashes to Music</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #1a1a1a;
+            color: #e8e8e8;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+        }
+        
+        .container {
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            padding: 48px;
+            border-radius: 8px;
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            max-width: 640px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #f4a261;
+            margin-bottom: 8px;
+            font-size: 2.25rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #a0a0a0;
+            margin-bottom: 32px;
+            font-size: 1rem;
+            font-weight: 400;
+        }
+        
+        .input-group {
+            margin-bottom: 24px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #e8e8e8;
+            font-size: 0.875rem;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 16px;
+            font-size: 14px;
+            border: 1px solid #4a4a4a;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+            background: #1a1a1a;
+            color: #e8e8e8;
+            box-sizing: border-box;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #f4a261;
+            box-shadow: 0 0 0 3px rgba(244, 162, 97, 0.1);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            font-family: inherit;
+        }
+        
+        .play-btn {
+            background: #f4a261;
+            color: #1a1a1a;
+        }
+        
+        .play-btn:hover:not(:disabled) {
+            background: #e76f51;
+            transform: translateY(-1px);
+        }
+        
+        .stop-btn {
+            background: #3a3a3a;
+            color: #e8e8e8;
+            border: 1px solid #4a4a4a;
+        }
+        
+        .stop-btn:hover:not(:disabled) {
+            background: #4a4a4a;
+            transform: translateY(-1px);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .output {
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 24px;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+            font-size: 13px;
+            line-height: 1.5;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #a0a0a0;
+        }
+        
+        .examples {
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid #3a3a3a;
+        }
+        
+        .examples h3 {
+            margin-bottom: 16px;
+            color: #e8e8e8;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+        
+        .example-hash {
+            background: #1a1a1a;
+            border: 1px solid #3a3a3a;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+            font-size: 12px;
+            margin: 8px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: #a0a0a0;
+        }
+        
+        .example-hash:hover {
+            background: #2a2a2a;
+            border-color: #f4a261;
+            color: #e8e8e8;
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 24px 0;
+            color: #a0a0a0;
+        }
+        
+        .spinner {
+            border: 2px solid #3a3a3a;
+            border-top: 2px solid #f4a261;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
+        .sliders {
+            margin: 20px 0;
+            padding: 20px;
+            background: #1f1f1f; /* dark background for box */
+            border-radius: 8px;   /* slightly rounded */
+            border: 1px solid #3a3a3a;
+            color: #ffffff;       /* white text inside box */
+        }
+
+        .slider-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .slider-group label {
+            min-width: 60px;
+            margin-bottom: 0;
+            color: #ffffff; /* white text */
+        }
+
+        .slider-group span {
+            min-width: 50px;
+            font-family: monospace;
+            font-size: 14px;
+            color: #ffffff; /* white text for value */
+        }
+
+        /* Dark theme sliders */
+        input[type="range"] {
+            -webkit-appearance: none; 
+            width: 100%;
+            height: 6px;
+            background: #3a3a3a; /* dark track */
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Chrome/Safari */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #f4a261; /* orange thumb */
+            border: none;
+            cursor: pointer;
+            margin-top: -5px;
+        }
+
+        /* Chrome/Safari track fill */
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 6px;
+            border-radius: 4px;
+            background: #3a3a3a;
+        }
+
+        /* Firefox */
+        input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #f4a261;
+            border: none;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-moz-range-track {
+            height: 6px;
+            border-radius: 4px;
+            background: #3a3a3a;
+        }
+
+        input[type="range"]::-moz-range-progress {
+            background: #f4a261;
+            height: 6px;
+            border-radius: 4px;
+        }
+     
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hash Wave</h1>
+        <p class="subtitle">Transform any hash into a unique melody</p>
+        
+        <div class="input-group">
+            <label for="hashInput">Enter Hash (Hex or Base58):</label>
+            <input type="text" 
+                   id="hashInput" 
+                   placeholder="Enter a hash that begins with 0x...">
+        </div>
+        
+        <div class="controls">
+            <button class="play-btn" onclick="playHashMelody()">
+                Play Melody
+            </button>
+            <button class="stop-btn" onclick="stopMelody()">
+                Stop
+            </button>
+        </div>
+
+        <div class="sliders">
+            <div class="slider-group">
+                <label for="speedSlider">Speed:</label>
+                <input type="range" id="speedSlider" min="0.025" max="0.5" step="0.025" value="0.125">
+                <span id="speedValue">5.0s</span>
+            </div>
+            <div class="slider-group">
+                <label for="volumeSlider">Volume:</label>
+                <input type="range" id="volumeSlider" min="0.0" max="1.0" step="0.1" value="1.0">
+                <span id="volumeValue">100%</span>
+            </div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Generating melody...</p>
+        </div>
+        
+        <div id="output" class="output">
+            Enter a hash above and click "Play Melody" to hear its unique sound!
+        </div>
+    </div>
+
+    <!-- Load libraries from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bs58/4.0.1/index.min.js"></script>
+    
+    <!-- Load our modules -->
+    <script src="hash-processor.js"></script>
+    <script src="audio-player.js"></script>
+    
+    <!-- Wait for everything to load -->
+    <script>
+        // Ensure all scripts are loaded before allowing interactions
+        window.addEventListener('load', function() {
+            console.log('All scripts loaded. hashWavePlayer available:', typeof hashWavePlayer !== 'undefined');
+        });
+    </script>
+    
+    <script>
+        let isPlaying = false;
+        
+        async function playHashMelody() {
+            const hashInput = document.getElementById('hashInput').value.trim();
+            const output = document.getElementById('output');
+            const loading = document.getElementById('loading');
+            
+            if (!hashInput) {
+                output.textContent = 'Please enter a hash string.';
+                return;
+            }
+            
+            try {
+                // Show loading
+                loading.style.display = 'block';
+                output.textContent = 'Processing hash...';
+                isPlaying = true;
+                
+                // Play the melody (0.25 = faster than original 0.5)
+                const speed = parseFloat(document.getElementById('speedSlider').value);
+                const volume = parseFloat(document.getElementById('volumeSlider').value);
+                const result = await hashWavePlayer.playHashMelody(hashInput, speed, volume);
+                
+                // Display results
+                output.innerHTML = 
+                    `<strong>Generated ${result.pitches.length} notes:</strong><br>` +
+                    `${result.pitches.join(', ')}<br><br>` +
+                    `<strong>Playing melody...</strong><br>`
+
+                // Auto-stop after melody finishes
+                setTimeout(() => {
+                    if (isPlaying) {
+                        output.innerHTML += 'Melody finished!';
+                        isPlaying = false;
+                    }
+                }, result.duration * 1000);
+                
+            } catch (error) {
+                output.textContent = `Error: ${error.message}`;
+                console.error('Melody generation error:', error);
+                isPlaying = false;
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+        
+        function stopMelody() {
+            hashWavePlayer.stop();
+            isPlaying = false;
+            
+            const output = document.getElementById('output');
+            if (output.textContent.includes('Playing melody')) {
+                output.innerHTML = output.innerHTML.replace('Playing melody...', 'Stopped');
+            }
+        }
+        
+        function useExampleHash(element) {
+            document.getElementById('hashInput').value = element.textContent.trim();
+        }
+        
+        // Allow Enter key to play melody
+        document.getElementById('hashInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                playHashMelody();
+            }
+        });
+
+        const hashInputElement = document.getElementById('hashInput');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+
+        speedSlider.addEventListener('input', function() {
+            // Current note length from slider
+            const noteLength = parseFloat(this.value);
+
+            // Compute total melody duration based on current hash
+            let totalDuration = 0;
+            const hashInput = hashInputElement.value.trim();
+            if (hashInput) {
+                try {
+                    const pitches = hashToPitches(hashInput); // get notes without playing
+                    totalDuration = pitches.length * noteLength;
+                } catch (err) {
+                    totalDuration = 0; // fallback if hash is invalid
+                }
+            }
+
+            // Update display to show total duration
+            speedValue.textContent = totalDuration.toFixed(2) + 's';
+        });
+
+        document.getElementById('volumeSlider').addEventListener('input', function() {
+            document.getElementById('volumeValue').textContent = Math.round(this.value * 100) + '%';
+        });
+    </script>
+</body>
+</html>
