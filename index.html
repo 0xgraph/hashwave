@@ -346,6 +346,7 @@
         async function playHashMelody() {
             // 1️⃣ Unlock audio context on iOS / Safari
             await Tone.start();
+            Tone.context.resume();
 
             const hashInput = document.getElementById('hashInput').value.trim();
             const output = document.getElementById('output');
